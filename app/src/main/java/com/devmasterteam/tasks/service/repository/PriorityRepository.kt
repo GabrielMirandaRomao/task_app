@@ -37,8 +37,28 @@ class PriorityRepository(val context: Context) : BaseRepository() {
 
     fun listPriority() = database.list()
 
+    fun getDescription(id: Int): String{
+        return if(PriorityRepository.getDescription(id) == "") {
+            val description = database.getDescripition(id)
+            setDescription(id, description)
+            description
+        } else {
+            PriorityRepository.getDescription(id)
+        }
+    }
+
     fun save(list: List<PriorityModel>) {
         database.clear()
         database.save(list)
+    }
+
+    companion object {
+        private val cache = mutableMapOf<Int, String>()
+
+        fun getDescription(id: Int): String= cache[id] ?: ""
+
+        fun setDescription(id: Int, description: String) {
+            cache[id] =  description
+        }
     }
 }

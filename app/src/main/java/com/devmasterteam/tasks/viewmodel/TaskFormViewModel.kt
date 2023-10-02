@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import com.devmasterteam.tasks.service.listener.ApiListener
 import com.devmasterteam.tasks.service.model.PriorityModel
 import com.devmasterteam.tasks.service.model.TaskModel
+import com.devmasterteam.tasks.service.model.ValidationModel
 import com.devmasterteam.tasks.service.repository.PriorityRepository
 import com.devmasterteam.tasks.service.repository.TaskRepository
 
@@ -18,14 +19,17 @@ class TaskFormViewModel(application: Application) : AndroidViewModel(application
     private val _prioritiesList = MutableLiveData<List<PriorityModel>>()
     val prioritiesList: LiveData<List<PriorityModel>> = _prioritiesList
 
+    private val _taskSave = MutableLiveData<ValidationModel>()
+    val taskSave: LiveData<ValidationModel> = _taskSave
+
     fun save(task: TaskModel) {
         taskRepository.create(task, object : ApiListener<Boolean> {
             override fun onSuccess(result: Boolean) {
-                val s = ""
+                _taskSave.value = ValidationModel()
             }
 
             override fun onFailure(message: String) {
-                val s = ""
+                _taskSave.value = ValidationModel(message)
             }
         })
     }
@@ -33,5 +37,4 @@ class TaskFormViewModel(application: Application) : AndroidViewModel(application
     fun loadPriorities() {
         _prioritiesList.value = priorityRepository.listPriority()
     }
-
 }

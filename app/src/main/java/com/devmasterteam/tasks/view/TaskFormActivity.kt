@@ -3,16 +3,13 @@ package com.devmasterteam.tasks.view
 import android.app.DatePickerDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.DatePicker
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
-import com.devmasterteam.tasks.R
-import com.devmasterteam.tasks.databinding.ActivityRegisterBinding
 import com.devmasterteam.tasks.databinding.ActivityTaskFormBinding
 import com.devmasterteam.tasks.service.model.PriorityModel
 import com.devmasterteam.tasks.service.model.TaskModel
-import com.devmasterteam.tasks.viewmodel.RegisterViewModel
 import com.devmasterteam.tasks.viewmodel.TaskFormViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -30,10 +27,6 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
         // Variáveis da classe
         viewModel = ViewModelProvider(this)[TaskFormViewModel::class.java]
         binding = ActivityTaskFormBinding.inflate(layoutInflater)
-
-        // Eventos
-//        binding.buttonSave.setOnClickListener(this)
-//        binding.buttonDate.setOnClickListener(this)
 
         viewModel.loadPriorities()
 
@@ -63,6 +56,18 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
             val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, list)
             binding.spinnerPriority.adapter = adapter
         }
+        viewModel.taskSave.observe(this) { task ->
+            if(task.showStatus()){
+                toast("Succeso")
+                finish()
+            } else {
+                toast(task.showMessage())
+            }
+        }
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
     }
 
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
@@ -71,14 +76,6 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
 
         val dueDate = dateFormat.format(calendar.time)
         binding.buttonDate.text = dueDate
-    }
-
-    private fun handleDate() {
-        val calender = Calendar.getInstance()
-        val year = calender.get(Calendar.YEAR)
-        val month = calender.get(Calendar.MONTH)
-        val day = calender.get(Calendar.DAY_OF_MONTH)
-        DatePickerDialog(this, this, year, month, day).show()
     }
 
     private fun handleSave(){
@@ -93,5 +90,13 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
         }
 
         viewModel.save(task)
+    }
+
+    private fun handleDate() {
+        val calender = Calendar.getInstance()
+        val year = calender.get(Calendar.YEAR)
+        val month = calender.get(Calendar.MONTH)
+        val day = calender.get(Calendar.DAY_OF_MONTH)
+        DatePickerDialog(this, this, year, month, day).show()
     }
 }
