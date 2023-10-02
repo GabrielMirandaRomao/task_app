@@ -22,6 +22,9 @@ class TaskListViewModel(application: Application) : AndroidViewModel(application
     private val _delete = MutableLiveData<ValidationModel>()
     val delete : LiveData<ValidationModel> = _delete
 
+    private val _status = MutableLiveData<ValidationModel>()
+    val status : LiveData<ValidationModel> = _status
+
     fun list() {
         taskRepository.list(object : ApiListener<List<TaskModel>> {
             override fun onSuccess(result: List<TaskModel>) {
@@ -48,5 +51,24 @@ class TaskListViewModel(application: Application) : AndroidViewModel(application
                 _delete.value = ValidationModel(message)
             }
         })
+    }
+
+    fun status(id: Int, isComplete: Boolean) {
+
+        val listener = object : ApiListener<Boolean>{
+            override fun onSuccess(result: Boolean) {
+                list()
+            }
+
+            override fun onFailure(message: String) {
+                _delete.value = ValidationModel(message)
+            }
+        }
+
+        if(isComplete){
+            taskRepository.complete(id, listener)
+        } else {
+            taskRepository.undo(id, listener)
+        }
     }
 }

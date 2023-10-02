@@ -37,4 +37,12 @@ class TaskRepository(context: Context) : BaseRepository(context) {
     fun delete(id: Int, listener: ApiListener<Boolean>) {
         executeCall(remote.delete(id), listener)
     }
+
+    fun complete(id: Int, listener: ApiListener<Boolean>) {
+        executeCall(remote.complete(id), listener)
+    }
+
+    fun undo(id: Int, listener: ApiListener<Boolean>) {
+        executeCall(remote.undo(id), listener)
+    }
 }
