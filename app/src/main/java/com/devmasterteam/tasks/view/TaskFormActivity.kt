@@ -8,18 +8,20 @@ import android.widget.DatePicker
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import com.devmasterteam.tasks.databinding.ActivityTaskFormBinding
+import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.devmasterteam.tasks.service.model.PriorityModel
 import com.devmasterteam.tasks.service.model.TaskModel
 import com.devmasterteam.tasks.viewmodel.TaskFormViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener{
+class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener {
 
     private lateinit var viewModel: TaskFormViewModel
     private lateinit var binding: ActivityTaskFormBinding
     private val dateFormat: SimpleDateFormat = SimpleDateFormat("dd/MM/yyyy")
     private var list: List<PriorityModel> = mutableListOf()
+    private var taskIdentification = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,13 +32,15 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
 
         viewModel.loadPriorities()
 
+        loadDataFromActivity()
+
         // Layout
         setContentView(binding.root)
         setListener()
         observe()
     }
 
-    private fun setListener(){
+    private fun setListener() {
         binding.buttonDate.setOnClickListener {
             handleDate()
         }
@@ -45,11 +49,30 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
         }
     }
 
+    private fun loadDataFromActivity() {
+        val bundle = intent.extras
+        if (bundle != null) {
+            taskIdentification = bundle.getInt(TaskConstants.BUNDLE.TASKID)
+            viewModel.load(taskIdentification)
+        }
+    }
+
+    private fun getIndex(priorityId: Int): Int {
+        var index = 0
+        for (l in list) {
+            if (l.id == priorityId) {
+                break
+            }
+            index++
+        }
+        return index
+    }
+
     private fun observe() {
         viewModel.prioritiesList.observe(this) { listPriority ->
             list = listPriority
             val list = mutableListOf<String>()
-            for(item in listPriority){
+            for (item in listPriority) {
                 list.add(item.description)
             }
 
@@ -57,11 +80,30 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
             binding.spinnerPriority.adapter = adapter
         }
         viewModel.taskSave.observe(this) { task ->
-            if(task.showStatus()){
-                toast("Succeso")
+            if (task.showStatus()) {
+                if(taskIdentification == 0) {
+                    toast("Tarefa criada com sucesso!")
+                } else {
+                    toast("Tarefa atualizada com sucesso!")
+                }
                 finish()
             } else {
                 toast(task.showMessage())
+            }
+        }
+        viewModel.task.observe(this) { task ->
+            binding.editDescription.setText(task.description)
+            binding.checkComplete.isChecked = task.complete
+            binding.spinnerPriority.setSelection(
+                getIndex(task.priorityId)
+            )
+            val date = SimpleDateFormat("yyyy-MM-dd").parse(task.dueDate)
+            binding.buttonDate.text = SimpleDateFormat("dd/MM/yyyy").format(date)
+        }
+        viewModel.taskLoad.observe(this) { load ->
+            if (!load.showStatus()) {
+                toast(load.showMessage())
+                finish()
             }
         }
     }
@@ -78,14 +120,14 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
         binding.buttonDate.text = dueDate
     }
 
-    private fun handleSave(){
+    private fun handleSave() {
         val task = TaskModel().apply {
-            this.id = 0
+            this.id = taskIdentification
             this.description = binding.editDescription.text.toString()
             this.complete = binding.checkComplete.isChecked
             this.dueDate = binding.buttonDate.text.toString()
 
-            val index  = binding.spinnerPriority.selectedItemPosition
+            val index = binding.spinnerPriority.selectedItemPosition
             this.priorityId = list[index].id
         }
 
