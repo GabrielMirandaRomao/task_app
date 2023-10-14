@@ -39,7 +39,9 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.editPassword.text.toString()
             viewModel.doLogin(email, password)
         }
-//        binding.textRegister.setOnClickListener(this)
+        binding.textRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
     }
 
     private fun observe() {
