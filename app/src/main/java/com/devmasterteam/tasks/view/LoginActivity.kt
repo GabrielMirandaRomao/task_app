@@ -25,6 +25,7 @@ class LoginActivity : AppCompatActivity() {
 
         // Layout
         setContentView(binding.root)
+        supportActionBar?.hide()
 
         viewModel.verifyLoggedUser()
 
