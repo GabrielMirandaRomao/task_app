@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.devmasterteam.tasks.service.constants.TaskConstants
+import com.devmasterteam.tasks.service.helper.BiometricHelper
 import com.devmasterteam.tasks.service.listener.ApiListener
 import com.devmasterteam.tasks.service.model.PersonModel
 import com.devmasterteam.tasks.service.model.PriorityModel
@@ -62,19 +63,18 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
         val logged = (token.isNotEmpty() && person.isNotEmpty())
 
-        _loggedUser.value = logged
-
-        if(!logged) {
+        if (!logged) {
             priorityRepository.list(object : ApiListener<List<PriorityModel>> {
                 override fun onSuccess(result: List<PriorityModel>) {
                     priorityRepository.save(result)
                 }
 
                 override fun onFailure(message: String) {
-                    val f = ""
                 }
             })
         }
+
+        _loggedUser.value = logged && BiometricHelper.isBiometricAvailable(getApplication())
 
     }
 
